@@ -6,7 +6,6 @@ import 'package:share_plus/share_plus.dart';
 import '../requests_inspector.dart';
 import 'curl_command_generator.dart';
 import 'json_pretty_converter.dart';
-import 'share_type_enum.dart';
 
 typedef StoppingRequestCallback = Future<RequestDetails?> Function(
     RequestDetails requestDetails);
@@ -145,28 +144,15 @@ class InspectorController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void shareSelectedRequest({
-    Rect? sharePositionOrigin,
-    ShareType shareType = ShareType.NormalLog,
-  }) {
+  void shareSelectedRequest([Rect? sharePositionOrigin, bool isCurl = false]) {
     String? requestShareContent;
-    if (shareType == ShareType.CurlCommand) {
+    if (isCurl) {
       final curlCommandGenerator = CurlCommandGenerator(_selectedRequest!);
       requestShareContent = curlCommandGenerator.generate();
-    } else if (shareType == ShareType.NormalLog) {
+    } else {
       final requestMap = _selectedRequest!.toMap();
       requestShareContent = _formatMap(requestMap);
-    } else {
-      final curlCommandGenerator = CurlCommandGenerator(_selectedRequest!);
-      final curlContent = curlCommandGenerator.generate();
-
-      final requestMap = _selectedRequest!.toMap();
-      final normalLogContent = _formatMap(requestMap);
-
-      requestShareContent =
-          '================[cURL Command]=================\n$curlContent\n\n==================[Normal Log]===================\n$normalLogContent';
     }
-
     Share.share(
       requestShareContent,
       sharePositionOrigin: sharePositionOrigin,
@@ -207,5 +193,19 @@ class InspectorController extends ChangeNotifier {
         .startsWith(e))) return Future.value(null);
 
     return _onStoppingResponse!(responseData);
+  }
+
+  bool isDarkMode = true;
+
+  void toggleInspectorTheme() {
+    isDarkMode = !isDarkMode;
+    notifyListeners();
+  }
+
+  bool isTreeView = false;
+
+  void toggleInspectorJsonView() {
+    isTreeView = !isTreeView;
+    notifyListeners();
   }
 }
